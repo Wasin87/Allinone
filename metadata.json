@@ -1,0 +1,5 @@
+{
+  "name": "AllInOne",
+  "description": "A comprehensive multi-functional productivity suite with dark mode aesthetics and vibrant module accents.",
+  "requestFramePermissions": ["microphone"]
+}

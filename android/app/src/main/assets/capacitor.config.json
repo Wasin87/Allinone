@@ -1,0 +1,6 @@
+{
+	"appId": "com.allinone.app",
+	"appName": "AllInOne",
+	"webDir": "dist",
+	"bundledWebRuntime": false
+}

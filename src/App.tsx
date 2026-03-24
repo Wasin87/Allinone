@@ -1560,11 +1560,7 @@ const SettingsScreen = ({ theme, onToggleTheme, language, onToggleLanguage, t, u
           "absolute top-0 right-0 w-32 h-32 blur-3xl opacity-20 transition-all group-hover:opacity-40",
           isDark ? "bg-indigo-500" : "bg-blue-500"
         )} />
-        <p className={cn("text-xs font-black tracking-tighter", isDark ? "text-white" : "text-slate-900")}>
-          All In <span className="text-blue-600">One</span>
-        </p>
-        <p className="text-slate-500 text-[10px] mt-0.5 font-medium tracking-wide">Productivity Suite</p>
-        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-white/5">
+        <div className="py-1">
           <p className="text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em] opacity-50">
             Developed by Wasin
           </p>

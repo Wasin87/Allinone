@@ -49,6 +49,7 @@ export const translations = {
       showActive: 'Show Active Notes',
       hideNote: 'Hide Note',
       unhideNote: 'Unhide Note',
+      editNote: 'Edit Note',
     },
     tools: {
       title: 'Extra Tools',
@@ -165,6 +166,7 @@ export const translations = {
       showActive: 'সক্রিয় নোট দেখান',
       hideNote: 'নোট লুকান',
       unhideNote: 'নোট আনহাইড করুন',
+      editNote: 'নোট এডিট করুন',
     },
     tools: {
       title: 'অতিরিক্ত টুলস',

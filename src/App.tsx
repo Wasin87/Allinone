@@ -80,6 +80,7 @@ const useWindowSize = () => {
 interface Note {
   id: string;
   title: string;
+  content: string;
   preview: string;
   tag: string;
   color: string;
@@ -664,12 +665,13 @@ const NotesScreen = ({ theme, t }: { theme?: 'dark' | 'light', t: any }) => {
   const [notes, setNotes] = useState<Note[]>(() => {
     const saved = localStorage.getItem('pro_notes');
     return saved ? JSON.parse(saved) : [
-      { id: '1', title: 'Marketing Strategy', preview: 'Focus on social media growth and organic reach...', tag: 'Work', color: 'indigo', date: Date.now(), pinned: true },
-      { id: '2', title: 'Weekend Getaway', preview: 'Pack hiking boots, camera, and extra batteries...', tag: 'Travel', color: 'emerald', date: Date.now() - 86400000 },
+      { id: '1', title: 'Marketing Strategy', content: 'Focus on social media growth and organic reach. Analyze competitors and identify key trends in the industry.', preview: 'Focus on social media growth and organic reach...', tag: 'Work', color: 'indigo', date: Date.now(), pinned: true },
+      { id: '2', title: 'Weekend Getaway', content: 'Pack hiking boots, camera, and extra batteries. Research local trails and book a cabin in the mountains.', preview: 'Pack hiking boots, camera, and extra batteries...', tag: 'Travel', color: 'emerald', date: Date.now() - 86400000 },
     ];
   });
   const [search, setSearch] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [showHidden, setShowHidden] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [newNoteContent, setNewNoteContent] = useState('');
@@ -683,18 +685,40 @@ const NotesScreen = ({ theme, t }: { theme?: 'dark' | 'light', t: any }) => {
   const saveNote = () => {
     if (!newNoteTitle.trim()) return;
     vibrate();
-    const newNote: Note = {
-      id: Date.now().toString(),
-      title: newNoteTitle,
-      preview: newNoteContent.slice(0, 100),
-      tag: 'Personal',
-      color: isDark ? 'indigo' : 'blue',
-      date: Date.now()
-    };
-    setNotes([newNote, ...notes]);
+
+    if (editingNoteId) {
+      setNotes(notes.map(n => n.id === editingNoteId ? {
+        ...n,
+        title: newNoteTitle,
+        content: newNoteContent,
+        preview: newNoteContent.slice(0, 100),
+        date: Date.now()
+      } : n));
+      setEditingNoteId(null);
+    } else {
+      const newNote: Note = {
+        id: Date.now().toString(),
+        title: newNoteTitle,
+        content: newNoteContent,
+        preview: newNoteContent.slice(0, 100),
+        tag: 'Personal',
+        color: isDark ? 'indigo' : 'blue',
+        date: Date.now()
+      };
+      setNotes([newNote, ...notes]);
+    }
+
     setIsAdding(false);
     setNewNoteTitle('');
     setNewNoteContent('');
+  };
+
+  const editNote = (note: Note) => {
+    vibrate();
+    setEditingNoteId(note.id);
+    setNewNoteTitle(note.title);
+    setNewNoteContent(note.content || note.preview);
+    setIsAdding(true);
   };
 
   const deleteNote = (id: string) => {
@@ -808,7 +832,12 @@ const NotesScreen = ({ theme, t }: { theme?: 'dark' | 'light', t: any }) => {
                   >
                     <Eye size={14} />
                   </button>
-                  <button className="text-slate-400 hover:text-indigo-400 transition-colors"><Edit3 size={14} /></button>
+                  <button 
+                    onClick={() => editNote(note)}
+                    className="text-slate-400 hover:text-indigo-400 transition-colors"
+                  >
+                    <Edit3 size={14} />
+                  </button>
                   <button onClick={() => deleteNote(note.id)} className="text-slate-400 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
                 </div>
               </div>
@@ -834,8 +863,17 @@ const NotesScreen = ({ theme, t }: { theme?: 'dark' | 'light', t: any }) => {
             )}
           >
             <div className="flex justify-between items-center">
-              <h3 className={cn("font-black text-lg", isDark ? "text-white" : "text-slate-900")}>{t.notes.newNote}</h3>
-              <button onClick={() => setIsAdding(false)} className="text-slate-400"><X size={24} /></button>
+              <h3 className={cn("font-black text-lg", isDark ? "text-white" : "text-slate-900")}>
+                {editingNoteId ? t.notes.editNote || "Edit Note" : t.notes.newNote}
+              </h3>
+              <button onClick={() => {
+                setIsAdding(false);
+                setEditingNoteId(null);
+                setNewNoteTitle('');
+                setNewNoteContent('');
+              }} className="text-slate-400">
+                <X size={24} />
+              </button>
             </div>
             <input
               value={newNoteTitle}

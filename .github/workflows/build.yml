@@ -1,73 +1,91 @@
 name: Build Android APK
-on: [push]
+
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      # 2️⃣ Setup Node
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # 3️⃣ Setup Java (required for Android build)
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          distribution: temurin
+          java-version: 17
 
+      # 4️⃣ Install dependencies
       - name: Install Dependencies
-        run: npm install --force
+        run: npm install
 
+      # 5️⃣ Build web project
       - name: Build Web Project
         run: |
-          
-          npm run build -- --base=./ || npm run build || true
+          npm run build || true
           if [ ! -d "dist" ]; then
-            mkdir -p dist
-            cp index.html dist/ 2>/dev/null || true
+            echo "dist not found, creating fallback"
+            mkdir dist
+            cp index.html dist/ || true
           fi
 
-      - name: Setup Capacitor Config
+      # 6️⃣ Install Capacitor
+      - name: Install Capacitor
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          
-          
-          
+
+      # 7️⃣ Create capacitor config
+      - name: Setup Capacitor Config
+        run: |
           cat <<EOF > capacitor.config.json
           {
-            "appId": "com.ec.aoo",
+            "appId": "com.ec.app",
             "appName": "AllInOne",
             "webDir": "dist",
             "server": {
-              "androidScheme": "https",
-              "hostname": "localhost",
-              "cleartext": true
+              "androidScheme": "https"
             }
           }
           EOF
-          
+
+      # 8️⃣ Add & Sync Android
+      - name: Capacitor Sync
+        run: |
           npx cap add android || true
           npx cap sync android
 
-      - name: Build Android APK
+      # 9️⃣ Build APK
+      - name: Build APK
         run: |
           cd android
-          
-          
-          echo "configurations.all {
-              resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-                  if (details.requested.group == 'org.jetbrains.kotlin') {
-                      details.useVersion '1.8.22'
-                  }
-              }
-          }" >> app/build.gradle
-          
           chmod +x gradlew
           ./gradlew assembleDebug
 
+      # 🔍 10️⃣ Verify APK exists
+      - name: Verify APK
+        run: |
+          if [ -f android/app/build/outputs/apk/debug/app-debug.apk ]; then
+            echo "APK found ✅"
+          else
+            echo "APK NOT FOUND ❌"
+            exit 1
+          fi
+
+      # 📦 11️⃣ Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Mobile-App-APK
+          name: android-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
